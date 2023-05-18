@@ -85,33 +85,25 @@ class StringMathEvaluator {
 
     // 省略された掛け算を補完する
     private fun List<String>.completeMultiplyOperators(): List<String> {
-        val result = this.toMutableList()
-        var edited: Boolean = true
-        while (edited) {
-            for (i in result.indices) {
-                val str = result[i]
-                if (str.matches(Regex("([0-9]|\\.)+\\(.*"))) {
-                    var opl1 = str.substring(0, str.indexOf("("))
-                    result[i] = str.substring(str.indexOf("("))
-                    result.add(i, opl1)
-                    result.add(i + 1, "*")
-                    edited = true
-                    break
-                } else if (str.matches(Regex(".*\\)([0-9]|\\.)+"))) {
-                    var opl2 = str.substring(str.lastIndexOf(")") + 1)
-                    result[i] = str.substring(0, str.lastIndexOf(")") + 1)
-                    result.add(i + 1, opl2)
-                    result.add(i + 1, "*")
-                    edited = true
-                    break
-                } else if (str.matches(Regex(".*\\)\\(.*"))) {
-                    result[i] = str.replace(")(", ")*(");
-                } else {
-                    edited = false
+        val numBeforeBracketPattern = Regex("([0-9]|\\.)+\\(.*")
+        val numAfterBracketPattern = Regex(".*\\)([0-9]|\\.)+")
+        return this.map {
+            it.replace(")(", ")*(")
+                .replace(numBeforeBracketPattern) {
+                    val str = it.value
+                    val opl1 = str.substring(0, str.indexOf("("))
+                    str.substring(str.indexOf("(")).let {
+                        "$opl1*$it"
+                    }
                 }
-            }
+                .replace(numAfterBracketPattern) {
+                    val str = it.value
+                    val opl2 = str.substring(str.indexOf(")"))
+                    str.substring(0, str.indexOf(")")).let {
+                        "$it*$opl2"
+                    }
+                }
         }
-        return result
     }
 
     // 外側の括弧を展開する
@@ -126,7 +118,7 @@ class StringMathEvaluator {
     fun splitToTerms(mathString: String): List<String> {
         val result = mutableListOf<String>()
         val termStack = Stack<Char>()
-        mathString.forEachIndexed{ index, char ->
+        mathString.forEachIndexed { index, char ->
             if (char.isOperator() && isBracketsValid(termStack.joinToString(""))) {
                 // 先頭でマイナス符号の時は最初に0を挿入してあげる
                 // 各演算で演算子の左右に1つずつ項が存在しないと計算できない仕様のため
