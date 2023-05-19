@@ -101,6 +101,7 @@ class StringMathEvaluator {
     }
 
     // 外側の括弧を展開する
+    // TODO: 再帰的に処理しないと外側の括弧が続いた場合に計算できなくなるバグがあるので修正する
     private fun expandBrackets(mathString: String): String {
         val expandedOuterBrackets = when (mathString.startsWith("(") && mathString.endsWith(")")) {
             true -> mathString.substring(1, mathString.length - 1)
