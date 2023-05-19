@@ -101,11 +101,18 @@ class StringMathEvaluator {
     }
 
     // 外側の括弧を展開する
-    private fun expandBrackets(mathString: String): String =
-        when (mathString.startsWith("(") && mathString.endsWith(")")) {
+    private fun expandBrackets(mathString: String): String {
+        val expandedOuterBrackets = when (mathString.startsWith("(") && mathString.endsWith(")")) {
             true -> mathString.substring(1, mathString.length - 1)
             false -> mathString
         }
+        // 展開後括弧がおかしくなっていたら展開をやめてそのまま返す
+        // fixes this case: (100)%(50) → 100)%(50
+        return when (isBracketsValid(expandedOuterBrackets)) {
+            true -> expandedOuterBrackets
+            false -> mathString
+        }
+    }
 
     // 項と演算子で分割を行います
     @VisibleForTesting

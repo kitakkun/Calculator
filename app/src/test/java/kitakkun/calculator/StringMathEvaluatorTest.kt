@@ -15,6 +15,7 @@ class StringMathEvaluatorTest {
         assertEquals(2.5, evaluator.calc("(10/2)%50"))
         assertEquals(40.0, evaluator.calc("(-10-50+100)"))
         assertEquals(160.0, evaluator.calc("(80)2"))
+        assertEquals(50.0, evaluator.calc("(100)%(50)"))
     }
 
     @Test
