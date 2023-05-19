@@ -14,6 +14,7 @@ class StringMathEvaluatorTest {
         assertEquals(-12.0, evaluator.calc("-1*10-2"))
         assertEquals(2.5, evaluator.calc("(10/2)%50"))
         assertEquals(40.0, evaluator.calc("(-10-50+100)"))
+        assertEquals(160.0, evaluator.calc("(80)2"))
     }
 
     @Test
@@ -29,5 +30,11 @@ class StringMathEvaluatorTest {
         assertEquals(listOf("1", "+", "2", "-", "3"), evaluator.splitToTerms("1+2-3"))
         assertEquals(listOf("((20+20)+(30+30))"), evaluator.splitToTerms("((20+20)+(30+30))"))
         assertEquals(listOf("1", "+", "(1-(4*5))", "+", "(-10)", "*", "(59)", "/", "(100-80)", "*", "2"), evaluator.splitToTerms("1+(1-(4*5))+(-10)*(59)/(100-80)*2"))
+    }
+
+    @Test
+    fun testMultiplierCompletion() {
+        assertEquals("(80)*2", evaluator.completeMultiply("(80)2"))
+        assertEquals("((80)*2*(50)/3*(20))", evaluator.completeMultiply("((80)2(50)/3(20))"))
     }
 }

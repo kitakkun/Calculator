@@ -17,8 +17,8 @@ class StringMathEvaluator {
             return it
         }
 
-        // 一番外側の括弧は外す
-        val expr = expandBrackets(mathExpression)
+        // 一番外側の括弧は外し，省略された*演算子を補完する
+        val expr = expandBrackets(mathExpression).completeMultiplyOperators()
 
         // 分割処理
         val terms: List<String> = splitToTerms(expr)
@@ -33,7 +33,6 @@ class StringMathEvaluator {
         // 例) 5 / 10 * 2を掛け算を優先的にやると 5 / 20 = 1/4 という誤った数値になる
         // 引き算を先に行うのも同様
         val calcResult = terms
-            .completeMultiplyOperators() // 省略されている*を補完する
             .calculateWithOperator("%") // パーセントを計算する
             .calculateWithOperator("/") // 割り算を計算する
             .calculateWithOperator("*") // 掛け算を計算する
@@ -83,27 +82,22 @@ class StringMathEvaluator {
         return result
     }
 
+    @VisibleForTesting
+    fun completeMultiply(string: String): String {
+        return string.completeMultiplyOperators()
+    }
+
     // 省略された掛け算を補完する
-    private fun List<String>.completeMultiplyOperators(): List<String> {
-        val numBeforeBracketPattern = Regex("([0-9]|\\.)+\\(.*")
-        val numAfterBracketPattern = Regex(".*\\)([0-9]|\\.)+")
-        return this.map {
-            it.replace(")(", ")*(")
-                .replace(numBeforeBracketPattern) {
-                    val str = it.value
-                    val opl1 = str.substring(0, str.indexOf("("))
-                    str.substring(str.indexOf("(")).let {
-                        "$opl1*$it"
-                    }
-                }
-                .replace(numAfterBracketPattern) {
-                    val str = it.value
-                    val opl2 = str.substring(str.indexOf(")"))
-                    str.substring(0, str.indexOf(")")).let {
-                        "$it*$opl2"
-                    }
-                }
-        }
+    private fun String.completeMultiplyOperators(): String {
+        val numBeforeBracketPattern = Regex("([0-9]|\\.)+\\(")
+        val numAfterBracketPattern = Regex("\\)([0-9]|\\.)+")
+        return this.replace(")(", ")*(")
+            .replace(numBeforeBracketPattern) {
+                it.value.replaceFirst("(", "*(")
+            }
+            .replace(numAfterBracketPattern) {
+                it.value.replaceFirst(")", ")*")
+            }
     }
 
     // 外側の括弧を展開する
